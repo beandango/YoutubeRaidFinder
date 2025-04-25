@@ -1,24 +1,17 @@
 # tests/conftest.py
-import sys, types, pytest
+import sys, types
 
-@pytest.fixture(scope="session", autouse=True)
-def fasttext_stub():
-    """
-    Make a fake 'fasttext' that satisfies app.py during tests.
-    Runs before collection because it's session+autouse.
-    """
-    if "fasttext" in sys.modules:          # real fasttext already imported?
-        return                             # then model file must exist locally
-
+# If the real package isn't present, create a dummy module *now*
+if "fasttext" not in sys.modules:
     dummy = types.ModuleType("fasttext")
 
     class _DummyModel:
         def predict(self, text):
+            # Always return English with high confidence
             return ["__label__en"], [0.99]
 
     def load_model(path):
-        # Ignore 'path' and return lightweight stub
         return _DummyModel()
 
     dummy.load_model = load_model
-    sys.modules["fasttext"] = dummy        # inject into import system
+    sys.modules["fasttext"] = dummy
