@@ -162,3 +162,4 @@ cython_debug/
 # Other
 lid.176.bin
 *.json
+config.json
