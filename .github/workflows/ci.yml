@@ -56,6 +56,9 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
+      
+      - name: Install Playwright browsers      
+        run: playwright install --with-deps
 
       - name: Run UI tests (Chromium headless)
         run: pytest tests/ui 
