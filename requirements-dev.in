@@ -1,8 +1,7 @@
-# requirements-dev.in      (runtime + dev)
-# -r requirements.in
+-r requirements.in
 pytest
-pytest-mock
 pytest-cov
+pytest-mock
 playwright
 pytest-playwright
 ruff
