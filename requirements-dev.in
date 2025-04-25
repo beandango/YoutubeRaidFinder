@@ -1,0 +1,8 @@
+# requirements-dev.in      (runtime + dev)
+# -r requirements.in
+pytest
+pytest-mock
+pytest-cov
+playwright
+pytest-playwright
+ruff

@@ -1,0 +1,5 @@
+# requirements.in          (runtime)
+flask
+google-api-python-client
+fasttext-wheel ; sys_platform == "win32"
+fasttext       ; sys_platform != "win32"
