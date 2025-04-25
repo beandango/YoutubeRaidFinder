@@ -8,3 +8,4 @@ to help you easily see current livestreams, sorted by subscriber or viewer count
 ## See the releases tab for the latest build :)
 
 
+![raidfinder](https://github.com/user-attachments/assets/cb9e0c01-d552-43cb-afe2-1083271eaeac)
