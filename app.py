@@ -107,6 +107,21 @@ def fetch_video_details(youtube, video_ids):
         all_items.extend(items)
     return all_items
 
+def fetch_channel_details(youtube, channel_ids):
+    CHUNK = 50
+    items = []
+    for start in range(0, len(channel_ids), CHUNK):
+        chunk = channel_ids[start:start+CHUNK]
+        if not chunk:
+            continue
+        resp = youtube.channels().list(
+            part="snippet,statistics",
+            id=",".join(chunk)
+        ).execute()
+        items.extend(resp.get("items", []))
+    return items
+
+
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
     query = request.args.get("q", "")
@@ -337,19 +352,15 @@ def index():
             # Fetch channel data.
             channel_ids = [cid for cid in channel_ids if cid and len(cid.strip()) > 5]
             channel_data = {}
-            if channel_ids:
-                channels_response = youtube.channels().list(
-                    part="snippet,statistics",
-                    id=",".join(channel_ids)
-                ).execute()
-                for citem in channels_response.get("items", []):
+
+            if channel_ids:                       
+                for citem in fetch_channel_details(youtube, channel_ids):
                     ch_id = citem["id"]
                     stats = citem.get("statistics", {})
-                    ch_snippet = citem.get("snippet", {})
-                    channel_desc = ch_snippet.get("description", "")
+                    snippet = citem.get("snippet", {})
                     channel_data[ch_id] = {
-                        "description": channel_desc,
-                        "subscribers": stats.get("subscriberCount", 0),
+                        "description": snippet.get("description", ""),
+                        "subscribers": stats.get("subscriberCount", 0)
                     }
 
             # Build final matching_streams.
