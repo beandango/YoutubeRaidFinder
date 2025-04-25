@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ---------- Unit + API layer ----------
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5          
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"                           
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run pytest with coverage
+        run: |
+          pytest --cov=app --cov-report=xml -q
+
+      - name: Upload coverage to Codecov      
+        if: ${{ github.repository_owner != 'fork' }}
+        uses: codecov/codecov-action@v5       
+        with:
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit
+
+  # ---------- UI layer (Playwright) ----------
+  ui:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install Python deps
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Install Playwright browsers      
+        run: playwright install --with-deps
+
+      - name: Run UI tests (Chromium headless)
+        run: pytest tests/ui -q --tracing=retain-on-failure
+        env:
+          CI: "true"          
+
+      - name: Upload Playwright traces on failure
+        if: failure()                          
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/**/*.zip
