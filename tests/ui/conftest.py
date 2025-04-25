@@ -2,6 +2,7 @@
 import threading, socket, time
 from pathlib import Path
 from unittest.mock import MagicMock
+import pytest
 
 import pytest
 from app import app as flask_app
@@ -71,3 +72,18 @@ def live_server_url(monkeypatch):
     time.sleep(1)
 
     yield f"http://localhost:{port}"
+
+@pytest.fixture(scope="session")
+def browser_context_args(tmp_path_factory):
+    """
+    This special fixture is read by pytest-playwright.
+    Everything you return here is passed to browser.new_context(**kwargs).
+    """
+    video_dir = tmp_path_factory.mktemp("videos")    # e.g. …/pytest-of-gh/video0
+    return {
+        # Store .webm videos here
+        "record_video_dir": str(video_dir),
+        # Optional: fix resolution so clips aren’t huge
+        "record_video_size": {"width": 1280, "height": 720},
+    }
+

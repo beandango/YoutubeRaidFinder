@@ -71,3 +71,11 @@ jobs:
         with:
           name: playwright-traces
           path: test-results/**/*.zip
+      
+      - name: Upload Playwright videos
+        if: failure()          
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-videos
+          path: ${{ runner.temp }}/pytest-of-*/videos/**/*.webm   
+
