@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Favorites</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    /* Simple inline styles, move these to your CSS file as needed */
+    .favorites-list {
+      list-style: none;
+      padding: 0;
+    }
+    .favorites-list li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+    }
+    .profile-pic {
+      border-radius: 50%;
+      margin-right: 15px;
+    }
+    .channel-title {
+      font-size: 1.2em;
+      flex-grow: 1;
+    }
+    .remove-favorite-btn {
+      background: #cf9390;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .remove-favorite-btn:hover {
+      background: #c9302c;
+    }
+  </style>
+</head>
+<body>
+    <div class="form-group">
+        <a href="/" class="favorites-page-btn">Back</a>
+    </div>
+  <h1>Your Favorites</h1>
+  <div id="favorites-container">
+    {% if favorites %}
+      <ul class="favorites-list">
+        {% for fav in favorites %}
+          <li data-channel-id="{{ fav.id }}">
+            <img src="{{ fav.thumbnail }}" alt="{{ fav.title }}'s Profile Picture" class="profile-pic">
+            <span class="channel-title">{{ fav.title }}</span>
+            <button class="remove-favorite-btn" data-channel-id="{{ fav.id }}">Remove</button>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No favorites found.</p>
+    {% endif %}
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      // Attach a click event handler for the "Remove" buttons
+      $(document).on("click", ".remove-favorite-btn", function(event) {
+        event.preventDefault();
+        var channelId = $(this).data("channel-id");
+        // Debug output
+        console.log("[DEBUG] Removing channel with ID:", channelId);
+        // AJAX call to remove the favorite
+        $.ajax({
+          url: "/remove_favorite",
+          type: "POST",
+          data: { channel_id: channelId },
+          success: function(result) {
+            // Option 1: Dynamically remove the list item
+            $('li[data-channel-id="' + channelId + '"]').fadeOut("slow", function() {
+              $(this).remove();
+            });
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.error("[DEBUG] Error removing favorite:", textStatus, errorThrown);
+            alert("Error removing favorite");
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

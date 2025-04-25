@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTube Raid Finder</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+</head>
+<body>
+  <h1>YouTube Raid Finder</h1>
+
+  <!-- This container holds all search/filter fields in a row -->
+  <form method="POST" action="/" class="search-container">
+    <!-- Each filter or input is grouped inside a .form-group for layout -->
+    <div class="form-group">
+      <label for="search_terms">Search Terms:</label>
+      <input type="text" id="search_terms" name="search_terms"
+             value="{{ search_terms }}" placeholder="e.g. Minecraft, Zelda"/>
+    </div>
+
+    <div class="form-group">
+      <label for="sort_by">Sort By:</label>
+      <select name="sort_by" id="sort_by">
+        <option value="viewers" {% if sort_by == "viewers" %}selected{% endif %}>Viewers</option>
+        <option value="subs" {% if sort_by == "subs" %}selected{% endif %}>Subscribers</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="sort_order">Order:</label>
+      <select name="sort_order" id="sort_order">
+        <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
+        <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="vtuber_filter">Vtuber Filter:</label>
+      <input type="checkbox" name="vtuber_filter" value="1"
+             {% if vtuber_filter_selected == "1" %}checked{% endif %}/>
+    </div>
+
+
+    <!-- Language Filter (Title-Detected) -->
+    <div class="form-group">
+        <label for="language_filter">Detected Language (Experimental):</label>
+        <select name="language_filter" id="language_filter">
+            <option value="" {% if language_filter == "" %}selected{% endif %}>
+                (Any)
+            </option>
+            <option value="en" {% if language_filter == "en" %}selected{% endif %}>
+                English (en)
+            </option>
+            <option value="ja" {% if language_filter == "ja" %}selected{% endif %}>
+                Japanese (ja)
+            </option>
+            <option value="es" {% if language_filter == "es" %}selected{% endif %}>
+                Spanish (es)
+            </option>
+            <option value="pt" {% if language_filter == "pt" %}selected{% endif %}>
+              Portugues (pt)
+            </option>
+            <option value="fr" {% if language_filter == "fr" %}selected{% endif %}>
+              French (fr)
+            </option>
+            <option value="de" {% if language_filter == "de" %}selected{% endif %}>
+              German (de)
+            </option>
+            <option value="ko" {% if language_filter == "ko" %}selected{% endif %}>
+                Korean (ko)
+            </option>
+            <option value="zh" {% if language_filter == "zh" %}selected{% endif %}>
+                Chinese (zh)
+            </option>
+            <option value="id" {% if language_filter == "id" %}selected{% endif %}>
+                Indonesian (id)
+            </option>
+            <option value="ru" {% if language_filter == "ru" %}selected{% endif %}>
+              Russian (ru)
+            </option>
+            <option value="vi" {% if language_filter == "vi" %}selected{% endif %}>
+              Vietnamese (vi)
+            </option>
+        </select>
+    </div>
+    <div class="form-group">
+        <button type="submit">Search</button>
+    </div>
+    <div class="form-group">
+      {% if result_count %}
+        <p>Found {{ result_count }} results</p>
+      {% endif %}
+    </div>
+    <div class="form-group">
+      <div id="favorites-input">
+        <input id="favorite-channel-input" type="text" placeholder="Add a channel to favorites...">
+        <input id="favorite-channel-id" type="hidden">
+        <button id="add-favorite-btn" type="button">Add</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <a href="/favorites" class="favorites-page-btn">View Favorites</a>
+    </div>
+  </form>
+  <div class="favs-bg">
+    <h3>Your Favorites</h3>
+    {% if favorites_livestreams %}
+      <div class="results-grid">
+        {% for stream in favorites_livestreams %}
+          <div class="result-card">
+            <h3>{{ stream.title }}</h3>
+            <b>Channel:</b> {{ stream.channelTitle }}<br>
+          
+            <!-- Embedded Video -->
+            <iframe 
+              src="https://www.youtube.com/embed/{{ stream.videoId }}?autoplay=0"
+              allowfullscreen>
+            </iframe>
+          
+            <p>
+              <a href="https://www.youtube.com/watch?v={{ stream.videoId }}" target="_blank">
+                Open on YouTube
+              </a>
+              <button class="copy-button"
+                      onclick="copyToClipboard('https://www.youtube.com/watch?v={{ stream.videoId }}')">
+                Copy Link
+              </button>
+              <button class="remove-favorite-btn"
+                      data-channel-id="{{ stream.channelId }}">
+                Remove
+              </button>
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No favorite channels are live right now.</p>
+    {% endif %}
+  </div>
+
+  </div>
+
+  <h3>Search Results</h3>
+  {% if matching_streams %}
+    <div class="results-grid">
+      {% for stream in matching_streams %}
+      <div class="result-card">
+        <h3>{{ stream.title }}</h3>
+        <b>Channel:</b> {{ stream.channelTitle }}<br>
+        <b>Detected Language:</b> {{ stream.finalLanguage }}<br>
+        <b>Confidence:</b> {{ stream.confidence }}<br>
+        <b>Viewers:</b> {{ stream.viewers }}<br>
+        <b>Subscribers:</b> {{ stream.subscribers }}<br>
+      
+        <!-- Embedded Video -->
+        <iframe 
+          src="https://www.youtube.com/embed/{{ stream.videoId }}?autoplay=0"
+          allowfullscreen>
+        </iframe>
+      
+        <p>
+          <a href="https://www.youtube.com/watch?v={{ stream.videoId }}" target="_blank">
+            Open on YouTube
+          </a>
+          <!-- "Copy Link" button -->
+          <button class="copy-button"
+                  onclick="copyToClipboard('https://www.youtube.com/watch?v={{ stream.videoId }}')">
+            Copy Link
+          </button>
+          <!-- New "Add to Favorites" button -->
+          <button class="add-to-favorites-btn"
+                  data-channel-id="{{ stream.channelId }}"
+                  data-channel-title="{{ stream.channelTitle }}">
+            Add to Favorites
+          </button>
+        </p>
+      </div>
+      
+      {% endfor %}
+    </div>
+  {% elif request.method == "POST" %}
+    <p>No results found.</p>
+  {% endif %}
+
+  <script>
+    function copyToClipboard(textToCopy) {
+      // Modern browsers support navigator.clipboard
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          console.log("Copied to clipboard:", textToCopy);
+          // Optionally show some UI feedback like a toast or alert
+          alert("Link copied to clipboard!");
+        })
+        .catch(err => {
+          console.error("Failed to copy:", err);
+          alert("Failed to copy link.");
+        });
+    }
+
+    $(function() {
+      $("#favorite-channel-input").autocomplete({
+        source: function(request, response) {
+          $.ajax({
+            url: "/autocomplete",
+            dataType: "json",
+            data: {
+              q: request.term
+            },
+            success: function(data) {
+              // Map data into the format required by jQuery UI.
+              response($.map(data, function(item) {
+                return {
+                  label: item.title,
+                  value: item.title,
+                  id: item.id
+                };
+              }));
+            }
+          });
+        },
+        minLength: 2,
+        select: function(event, ui) {
+          // When a result is selected, store the channel ID.
+          $("#favorite-channel-id").val(ui.item.id);
+        }
+      });
+
+      $("#add-favorite-btn").click(function(event) {
+        event.preventDefault(); // Prevent form submission
+        var channelId = $("#favorite-channel-id").val();
+        var channelTitle = $("#favorite-channel-input").val();
+        if (!channelId || !channelTitle) {
+          alert("Please select a channel from the suggestions.");
+          return;
+        }
+        // Send the selected channel to the backend to save as favorite.
+        $.ajax({
+          url: "/add_favorite",
+          type: "POST",
+          data: {
+            channel_id: channelId,
+            channel_title: channelTitle
+          },
+          success: function(result) {
+            location.reload();
+          },
+          error: function() {
+            alert("Error adding favorite");
+          }
+        });
+      });
+    });
+
+    $(document).ready(function() {
+    // Existing code for autocomplete (if any)
+    
+    // Event delegation for the dynamically generated "Add to Favorites" buttons.
+    $(document).on("click", ".add-to-favorites-btn", function(event) {
+      event.preventDefault(); // Prevent any default action
+      // Retrieve channel details from data attributes.
+      var channelId = $(this).data("channel-id");
+      var channelTitle = $(this).data("channel-title");
+
+      // Debug log to verify values.
+      console.log("[DEBUG] Adding channel:", channelId, channelTitle);
+
+      $.ajax({
+        url: "/add_favorite",
+        type: "POST",
+        data: {
+          channel_id: channelId,
+          channel_title: channelTitle
+        },
+        success: function(result) {
+          // Provide visual feedback on success.
+          alert("Channel added to favorites!");
+          // Optionally, update the UI without reloading.
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.error("[DEBUG] Error adding favorite:", textStatus, errorThrown);
+          alert("Error adding favorite");
+        }
+      });
+    });
+  });
+
+  $(document).ready(function() {
+    // Existing code for autocomplete or add favorite...
+
+    // Event delegation: Listen for clicks on dynamically generated "Remove" buttons.
+    $(document).on("click", ".remove-favorite-btn", function(event) {
+      event.preventDefault();  // Prevent any default button behavior
+      var channelId = $(this).data("channel-id");
+
+      // Debug output to verify that channelId is captured.
+      console.log("[DEBUG] Removing channel with ID:", channelId);
+
+      $.ajax({
+        url: "/remove_favorite",
+        type: "POST",
+        data: { channel_id: channelId },
+        success: function(result) {
+          // Option 1: Reload the page after removal.
+          // location.reload();
+          
+          // Option 2: Remove the corresponding list item from the DOM.
+          // (Assumes your favorite channel is wrapped in an <li> with data-channel-id attribute.)
+          $('li[data-channel-id="' + channelId + '"]').remove();
+
+          alert("Channel removed from favorites!");
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.error("[DEBUG] Error removing favorite:", textStatus, errorThrown);
+          alert("Error removing favorite");
+        }
+      });
+    });
+  });
+  </script>
+    
+</body>
+</html>
