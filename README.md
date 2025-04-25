@@ -1,5 +1,9 @@
 # Youtube Raid Finder
 
+![CI](https://github.com/beandango/YoutubeRaidFinder/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://codecov.io/gh/beandango/YoutubeRaidFinder/branch/main/graph/badge.svg)
+
+
 ### A tool to help youtube streamers find other streamers on Youtube to redirect/raid into!
 
 The webapp uses python + flask to pull youtube livestream data from Google's Youtube Data API v3 
@@ -9,3 +13,4 @@ to help you easily see current livestreams, sorted by subscriber or viewer count
 
 
 ![raidfinder](https://github.com/user-attachments/assets/cb9e0c01-d552-43cb-afe2-1083271eaeac)
+
