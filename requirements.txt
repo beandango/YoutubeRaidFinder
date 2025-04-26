@@ -49,6 +49,8 @@ markupsafe==3.0.2
     #   werkzeug
 numpy==2.2.5
     # via fasttext-wheel
+path==17.1.0
+    # via -r requirements.in
 proto-plus==1.26.1
     # via google-api-core
 protobuf==6.30.2

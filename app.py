@@ -6,6 +6,7 @@ import os, sys
 import webbrowser, threading
 import fasttext
 import traceback
+from pathlib import Path
 
 with open("config.json", "r") as f:
     config = json.load(f)
@@ -14,19 +15,19 @@ API_KEY = config["YT_API_KEY"]
 FAVORITES_FILE = "favorites.json"
 model = fasttext.load_model("lid.176.bin")
 
-def get_exe_dir():
-    """Return the directory where the .exe is located (in onedir mode)."""
-    return os.path.dirname(os.path.abspath(sys.executable))
+if getattr(sys, "frozen", False):                # frozen by PyInstaller
+    base_dir = Path(sys.executable).parent       # …/dist/yt-raid-finder/
+else:                                            # regular source run
+    base_dir = Path(__file__).resolve().parent   # …/YoutubeRaidFinder/
 
-exe_dir = get_exe_dir()
+templates_path = base_dir / "templates"
+static_path    = base_dir / "static"
 
-templates_path = os.path.join(exe_dir, 'templates')
-static_path = os.path.join(exe_dir, 'static')
-
-app = Flask(__name__,
-            template_folder=templates_path,
-            static_folder=static_path
-            )
+app = Flask(
+    __name__,
+    template_folder=str(templates_path),
+    static_folder=str(static_path),
+)
 
 
 def load_favorites():
