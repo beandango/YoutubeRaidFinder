@@ -11,8 +11,7 @@ def test_base_dir_when_frozen(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(fake_exe))
 
-    # ---- import a *new* copy of app.py under a throw-away name ----
-    app_path = Path(__file__).resolve().parents[1] / "app.py"
+    app_path = next(p for p in Path(__file__).resolve().parents if (p / "app.py").exists()) / "app.py"
     spec = importlib.util.spec_from_file_location("app_frozen_test", app_path)
     app_frozen = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(app_frozen)          # executes top-level code
