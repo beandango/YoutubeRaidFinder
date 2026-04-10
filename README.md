@@ -1,5 +1,8 @@
 # YouTube Raid Finder 🪄🔴
 
+> [!Warning]
+> This repo now lives at: https://codeberg.org/hajimedangovt/YoutubeRaidFinder 
+
 ![CI](https://github.com/beandango/YoutubeRaidFinder/actions/workflows/ci.yml/badge.svg)
 ![Coverage](https://codecov.io/gh/beandango/YoutubeRaidFinder/branch/main/graph/badge.svg)
 
